@@ -24,3 +24,5 @@ ex_prolog-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
+
+priv/swipl_files
