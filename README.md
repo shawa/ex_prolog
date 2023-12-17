@@ -1,21 +1,17 @@
 # ExProlog
 
-**TODO: Add description**
+## Syntax
 
-## Installation
+- `defprolog` or `defpl`
+- big block of prolog, or individual cases
+- with expr for top-of-file flags
+- prolog namespacing
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `ex_prolog` to your list of dependencies in `mix.exs`:
+## Runtime
 
-```elixir
-def deps do
-  [
-    {:ex_prolog, "~> 0.1.0"}
-  ]
-end
-```
+- call/all
+- kill port and restart
+- ets table for modules?
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/ex_prolog>.
-
+- define function heads to call predicate
+- erlog backend
