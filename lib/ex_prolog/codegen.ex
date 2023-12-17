@@ -1,19 +1,38 @@
 defmodule ExProlog.Codegen do
-  def format_list_innards(list, sep \\ ", ") when is_list(list) do
-    list
-    |> Enum.map(&format/1)
-    |> Enum.join("#{sep}")
+  def format({:__block__, terms}) do
+    format_term({:__block__, terms})
   end
 
-  def format({:__block__, terms}) do
+  def format(term) do
+    format_term(term) <> "."
+  end
+
+  def format_term({:__block__, terms}) do
     terms
-    |> Enum.map(&format/1)
+    |> Enum.map(&format_term/1)
     |> Enum.map(&(&1 <> "."))
     |> Enum.join("\n\n")
     |> then(&(&1 <> "\n"))
   end
 
-  def format({:var, atom}) when is_atom(atom) do
+  def format_term({:|, [head, tail]}) do
+    "[#{format_term(head)}|#{format_term(tail)}]"
+  end
+
+  def format_term({:":-", [implication, goals]}) when is_list(goals) do
+    case implication do
+      [] ->
+        ":- " <> format_list_innards(goals, ",\n  ")
+
+      term ->
+        case goals do
+          [goal] -> format_term(term) <> " :- " <> format_term(goal)
+          goals -> format_term(term) <> " :-\n  " <> format_list_innards(goals, ",\n  ")
+        end
+    end
+  end
+
+  def format_term({:var, atom}) when is_atom(atom) do
     case Atom.to_string(atom) do
       "_" <> rest ->
         "_" <> String.capitalize(rest)
@@ -23,45 +42,27 @@ defmodule ExProlog.Codegen do
     end
   end
 
-  def format(atom) when is_atom(atom) do
+  def format_term({functor, args}) do
+    "#{format_term(functor)}(#{format_list_innards(args)})"
+  end
+
+  def format_term(atom) when is_atom(atom) do
     Atom.to_string(atom)
   end
 
-  def format(integer) when is_integer(integer) do
+  def format_term(integer) when is_integer(integer) do
     Integer.to_string(integer)
   end
 
-  def format(list) when is_list(list) do
+  def format_term(list) when is_list(list) do
     list
     |> format_list_innards()
     |> then(&"[#{&1}]")
   end
 
-  def format({:|, [head, tail]}) do
-    "[#{format(head)}|#{format(tail)}]"
-  end
-
-  def format(
-        {:":-",
-         [
-           implication,
-           goals
-         ]}
-      )
-      when is_list(goals) do
-    case implication do
-      [] ->
-        ":- " <> format_list_innards(goals, ",\n  ")
-
-      term ->
-        case goals do
-          [goal] -> format(term) <> " :- " <> format(goal)
-          goals -> format(term) <> " :-\n  " <> format_list_innards(goals, ",\n  ")
-        end
-    end
-  end
-
-  def format({functor, args}) do
-    "#{format(functor)}(#{format_list_innards(args)})"
+  defp format_list_innards(list, sep \\ ", ") when is_list(list) do
+    list
+    |> Enum.map(&format_term/1)
+    |> Enum.join("#{sep}")
   end
 end

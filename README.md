@@ -2,16 +2,19 @@
 
 ## Syntax
 
-- `defprolog` or `defpl`
-- big block of prolog, or individual cases
-- with expr for top-of-file flags
-- prolog namespacing
+- [ ] `defprolog` or `defpl`
+- [x] big block of prolog, or individual cases
+- [ ] with expr for top-of-file flags
+- [x] variable pinning
+- [x] single-statement block handling
+- [ ] prolog namespacing
+- [ ] reformat tests
 
 ## Runtime
 
-- call/all
-- kill port and restart
-- ets table for modules?
+- [x] call/all
+- [ ] kill port and restart
+- [ ] ets table for modules?
 
-- define function heads to call predicate
-- erlog backend
+- [ ] define function heads to call predicate
+- [ ] erlog backend

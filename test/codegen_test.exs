@@ -5,44 +5,44 @@ defmodule ExProlog.CodegenTest do
 
   describe "format/1" do
     test "variables" do
-      assert format({:var, :a}) == "A"
+      assert format_term({:var, :a}) == "A"
     end
 
     test "underscore" do
-      assert format({:var, :_}) == "_"
+      assert format_term({:var, :_}) == "_"
     end
 
     test "underscore variables" do
-      assert format({:var, :_ignore}) == "_Ignore"
+      assert format_term({:var, :_ignore}) == "_Ignore"
     end
 
     test "atoms" do
-      assert format(:a) == "a"
+      assert format_term(:a) == "a"
     end
 
     test "numbers" do
-      assert format(1) == "1"
+      assert format_term(1) == "1"
     end
 
     test "lists" do
-      assert format([1, 2, {:var, :a}, :atom]) == "[1, 2, A, atom]"
+      assert format_term([1, 2, {:var, :a}, :atom]) == "[1, 2, A, atom]"
     end
 
     test "cons list" do
-      assert format({:|, [:x, {:var, :t}]}) == "[x|T]"
+      assert format_term({:|, [:x, {:var, :t}]}) == "[x|T]"
     end
 
     test "compound term" do
-      assert format({:functor_name, [:atom, {:var, :arg}, [1, 2]]}) ==
+      assert format_term({:functor_name, [:atom, {:var, :arg}, [1, 2]]}) ==
                "functor_name(atom, Arg, [1, 2])"
     end
 
     test "simple rule" do
-      assert format({:":-", [:atom, [{:var, :other_term}]]}) == "atom :- Other_term"
+      assert format_term({:":-", [:atom, [{:var, :other_term}]]}) == "atom :- Other_term"
     end
 
     test "compound rule" do
-      assert format(
+      assert format_term(
                {:":-",
                 [
                   {:dependent, [var: :x, var: :y]},
@@ -52,7 +52,7 @@ defmodule ExProlog.CodegenTest do
     end
 
     test "block" do
-      assert format(
+      assert format_term(
                {:__block__,
                 [
                   ":-": [[], [use_module: [library: [:clpfd]]]],

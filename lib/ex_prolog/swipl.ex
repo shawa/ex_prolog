@@ -3,14 +3,16 @@ defmodule ExProlog.SWIPL do
 
   require Logger
 
+  alias ExProlog.Parser
+
   def start_link(_) do
     GenServer.start_link(__MODULE__, nil, name: __MODULE__)
   end
 
-  @spec init(any()) :: {:ok, port()}
-  def init(opts) do
+  def init(_opts \\ []) do
     path = System.find_executable("swipl")
     port = Port.open({:spawn_executable, path}, [:binary, :stderr_to_stdout, args: []])
+
     Process.link(port)
     Port.monitor(port)
 
@@ -20,6 +22,11 @@ defmodule ExProlog.SWIPL do
   @spec call(String.t()) :: any()
   def call(goal) do
     GenServer.call(__MODULE__, {:call, goal})
+  end
+
+  @spec all(String.t()) :: any()
+  def all(goal) do
+    GenServer.call(__MODULE__, {:all, goal})
   end
 
   @spec cast(String.t()) :: any()
@@ -35,11 +42,6 @@ defmodule ExProlog.SWIPL do
 
     File.write!(filepath, module.__prolog__())
 
-    consult(filepath)
-  end
-
-  def consult(filepath) do
-    # ++ rules ++ ["\n\04"]
     call("consult('#{filepath}').")
   end
 
@@ -56,18 +58,19 @@ defmodule ExProlog.SWIPL do
 
     reply =
       receive do
-        {^port, message} -> message
+        {^port, {:data, message}} -> Parser.parse_terminal_line(message)
       end
 
     {:reply, reply, port}
   end
 
-  def unroll_solutions do
-    receive do
-      {_port, value} ->
-        nil
-        # code
-    end
+  def handle_call({:all, goal}, _, port) do
+    reply =
+      goal
+      |> unroll([], port)
+      |> Enum.map(&Parser.parse_compound_line/1)
+
+    {:reply, reply, port}
   end
 
   def handle_cast({:cast, goal}, port) do
@@ -85,12 +88,22 @@ defmodule ExProlog.SWIPL do
     {:noreply, port}
   end
 
-  def halt do
-    cast("halt.")
-  end
+  defp unroll(goal, acc, port) do
+    Port.command(port, goal <> "\n")
 
-  def format_goals(goals) do
-    goals
-    |> Enum.join("\n")
+    reply =
+      receive do
+        {^port, {:data, message}} -> message
+      end
+
+    case String.reverse(reply) do
+      "\n\n." <> rest ->
+        [String.reverse(rest) | acc]
+        |> Enum.map(&String.trim/1)
+        |> Enum.reverse()
+
+      _ ->
+        unroll(";", [reply | acc], port)
+    end
   end
 end

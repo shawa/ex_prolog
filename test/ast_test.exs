@@ -176,5 +176,16 @@ defmodule ExProlog.AstTest do
                   ]
                 ]}
     end
+
+    test "pinned variable expansion" do
+      term =
+        quote do
+          [y, ^x]
+        end
+
+      context = [x: 1]
+
+      assert to_prolog(term, context) == [{:var, :y}, 1]
+    end
   end
 end

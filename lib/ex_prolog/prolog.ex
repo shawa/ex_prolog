@@ -12,22 +12,31 @@ defmodule ExProlog.Prolog do
   defmacro defprolog(_call \\ nil, do: block) do
     quote do
       def __prolog__ do
-        unquote(compile(block))
+        compile(
+          unquote(Macro.escape(block)),
+          binding()
+        )
       end
     end
   end
 
-  defmacro prolog(_call \\ nil, do: block) do
+  defmacro query(call) do
     quote do
-      unquote(compile(block))
+      ExProlog.Prolog.compile(
+        unquote(Macro.escape(call)),
+        binding()
+      )
     end
   end
 
-  def compile(block) do
-    block
-    |> Ast.to_prolog()
-    |> Codegen.format()
+  def compile(block, ctx \\ []) do
+    prolog_ast =
+      Ast.to_prolog(
+        block,
+        ctx
+      )
 
+    Codegen.format(prolog_ast)
     # |> tag(__MODULE__)
   end
 
