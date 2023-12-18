@@ -1,4 +1,16 @@
 defmodule ExProlog.Codegen do
+  @infix_operators [
+    :+,
+    :-,
+    :=,
+    :>,
+    :<,
+    :"=<",
+    :>=,
+    :"-->",
+    :"\\="
+  ]
+
   def format({:__block__, terms}) do
     format_term({:__block__, terms})
   end
@@ -17,6 +29,10 @@ defmodule ExProlog.Codegen do
 
   def format_term({:|, [head, tail]}) do
     "[#{format_term(head)}|#{format_term(tail)}]"
+  end
+
+  def format_term({operator, [left, right]}) when operator in @infix_operators do
+    format_term(left) <> " #{operator} " <> format_term(right)
   end
 
   def format_term({:":-", [implication, goals]}) when is_list(goals) do
@@ -42,7 +58,7 @@ defmodule ExProlog.Codegen do
     end
   end
 
-  def format_term({functor, args}) do
+  def format_term({functor, args} = ast) do
     "#{format_term(functor)}(#{format_list_innards(args)})"
   end
 

@@ -141,6 +141,22 @@ defmodule ExProlog.AstTest do
                {:":-", [[], [:goal, :other_goal]]}
     end
 
+    test "relations" do
+      terms =
+        quote do
+          1 = 2
+          1 != 2
+          1 >= 2
+          1 <= 2
+          1 > 2
+          1 < 2
+        end
+
+      assert to_prolog(terms) ==
+               {:__block__,
+                [=: [1, 2], "\\=": [1, 2], >=: [1, 2], "=<": [1, 2], >: [1, 2], <: [1, 2]]}
+    end
+
     test "multiple terms" do
       terms =
         quote do

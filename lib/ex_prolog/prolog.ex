@@ -16,6 +16,7 @@ defmodule ExProlog.Prolog do
           unquote(Macro.escape(block)),
           binding()
         )
+        |> tag(__MODULE__)
       end
     end
   end
@@ -37,7 +38,6 @@ defmodule ExProlog.Prolog do
       )
 
     Codegen.format(prolog_ast)
-    # |> tag(__MODULE__)
   end
 
   def tag(code, module) do

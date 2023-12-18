@@ -5,18 +5,20 @@ defmodule ExProlog.SWIPL do
 
   alias ExProlog.Parser
 
-  def start_link(_) do
-    GenServer.start_link(__MODULE__, nil, name: __MODULE__)
+  def start_link(opts) do
+    to_consult = Keyword.get(opts, :consult, [])
+
+    GenServer.start_link(__MODULE__, to_consult, name: __MODULE__)
   end
 
-  def init(_opts \\ []) do
+  def init(to_consult \\ []) do
     path = System.find_executable("swipl")
     port = Port.open({:spawn_executable, path}, [:binary, :stderr_to_stdout, args: []])
 
     Process.link(port)
     Port.monitor(port)
 
-    {:ok, port}
+    {:ok, {port, to_consult}}
   end
 
   @spec call(String.t()) :: any()
@@ -34,7 +36,12 @@ defmodule ExProlog.SWIPL do
     GenServer.cast(__MODULE__, {:cast, goal})
   end
 
-  def consult(module) when is_atom(module) do
+  def consult(module) do
+    filepath = write_module(module)
+    call("['#{filepath}'].")
+  end
+
+  def write_module(module) when is_atom(module) do
     filepath =
       module
       |> Atom.to_string()
@@ -42,7 +49,7 @@ defmodule ExProlog.SWIPL do
 
     File.write!(filepath, module.__prolog__())
 
-    call("consult('#{filepath}').")
+    filepath
   end
 
   def filepath_for(file_name) do
@@ -53,15 +60,16 @@ defmodule ExProlog.SWIPL do
     ])
   end
 
-  def handle_call({:call, goal}, _from, port) do
+  def do_call(goal, port) do
     Port.command(port, goal <> "\n")
 
-    reply =
-      receive do
-        {^port, {:data, message}} -> Parser.parse_terminal_line(message)
-      end
+    receive do
+      {^port, {:data, message}} -> Parser.parse_terminal_line(message)
+    end
+  end
 
-    {:reply, reply, port}
+  def handle_call({:call, goal}, _from, port) do
+    {:reply, do_call(goal, port), port}
   end
 
   def handle_call({:all, goal}, _, port) do
@@ -83,8 +91,19 @@ defmodule ExProlog.SWIPL do
     {:stop, :normal, port}
   end
 
-  def handle_info({port, {:data, "Welcome to SWI-Prolog" <> _rest = message}}, port) do
+  def handle_info({port, {:data, "Welcome to SWI-Prolog" <> _rest = message}}, {port, to_consult}) do
     Logger.info(message)
+    {:noreply, port, {:continue, {:consult, to_consult}}}
+  end
+
+  def handle_continue({:consult, modules}, port) do
+    Enum.each(modules, fn module ->
+      Logger.info("consulting", module: module)
+
+      filepath = write_module(module)
+      do_call("['#{filepath}'].", port)
+    end)
+
     {:noreply, port}
   end
 

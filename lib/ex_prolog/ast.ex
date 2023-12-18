@@ -6,15 +6,20 @@ defmodule ExProlog.Ast do
     to_prolog(binding)
   end
 
-  def to_prolog({:<-, meta, args}, bindings) when is_list(args) do
-    to_prolog({:":-", meta, args}, bindings)
+  @operator_mappings [
+    {:~>, :"-->"},
+    {:<-, :":-"},
+    {:!=, :"\\="},
+    {:<=, :"=<"}
+  ]
+
+  for {elixir_op, prolog_op} <- @operator_mappings do
+    def to_prolog({unquote(elixir_op), meta, args}, bindings) do
+      to_prolog({unquote(prolog_op), meta, args}, bindings)
+    end
   end
 
-  def to_prolog({:~>, meta, args}, bindings) when is_list(args) do
-    to_prolog({:"-->", meta, args}, bindings)
-  end
-
-  def to_prolog({:<-, [], [{:{}, [], []}, rhs_args]}, bindings) do
+  def to_prolog({:":-", [], [{:{}, [], []}, rhs_args]}, bindings) do
     to_prolog({:":-", [], [[], to_prolog(rhs_args)]}, bindings)
   end
 

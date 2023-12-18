@@ -1,10 +1,14 @@
 defmodule ExProlog.Parser do
   def parse_terminal_line(line) do
-    "\n\n." <> rest = String.reverse(line)
+    case String.reverse(line) do
+      "\n\n." <> rest ->
+        rest
+        |> String.reverse()
+        |> parse()
 
-    rest
-    |> String.reverse()
-    |> parse()
+      other ->
+        other
+    end
   end
 
   def parse_compound_line(line) do
@@ -13,6 +17,8 @@ defmodule ExProlog.Parser do
     |> parse()
     |> Enum.map(&extract_assign/1)
   end
+
+  def extract_assign(false), do: false
 
   def extract_assign({:=, _, [{var, [], nil}, value]}) do
     {var, parse_elixir_ast(value)}

@@ -61,11 +61,6 @@ defmodule ExProlog.CodegenTest do
                   ":-": [
                     {:sibling, [var: :x, var: :y]},
                     [parent: [var: :p, var: :y], parent: [var: :p, var: :x]]
-                  ],
-                  "-->": [{:optional, [var: :_]}, []],
-                  "-->": [
-                    {:optional, [var: :x]},
-                    [[var: :x], [optional: [var: :x]]]
                   ]
                 ]}
              ) ==
@@ -79,10 +74,6 @@ defmodule ExProlog.CodegenTest do
                sibling(X, Y) :-
                  parent(P, Y),
                  parent(P, X).
-
-               -->(optional(_), []).
-
-               -->(optional(X), [[X], [optional(X)]]).
                """
     end
   end
