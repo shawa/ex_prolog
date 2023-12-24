@@ -1,4 +1,4 @@
-defmodule ExProlog.Codegen do
+defmodule ExProlog.Prolog.CodeGeneration do
   @infix_operators [
     :+,
     :-,

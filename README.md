@@ -202,3 +202,9 @@ end
 - <https://metalevel.at/prolog>
 - Nx
 - Ecto
+
+#### Todos
+
+- AST Uniformity (no bare atoms, {:functor, nil} instead)
+- Explicit AST bidirection
+- group the tests better

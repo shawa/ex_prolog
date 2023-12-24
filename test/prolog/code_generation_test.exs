@@ -1,7 +1,7 @@
-defmodule ExProlog.CodegenTest do
+defmodule ExProlog.Prolog.CodeGenerationTest do
   use ExUnit.Case
 
-  import ExProlog.Codegen
+  import ExProlog.Prolog.CodeGeneration
 
   describe "format/1" do
     test "variables" do

@@ -1,4 +1,4 @@
-defmodule ExProlog.Ast do
+defmodule ExProlog.Prolog.PrologFromElixir do
   def to_prolog(term, bindings \\ [])
 
   def to_prolog({:^, _, [{variable, _meta, _module}]}, bindings) do
